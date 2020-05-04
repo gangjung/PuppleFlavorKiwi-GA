@@ -69,6 +69,7 @@
     <Compile Include="Assets\Scripts\HUDManager.cs" />
     <Compile Include="Assets\Scripts\Singleton.cs" />
     <Compile Include="Assets\Scripts\Util.cs" />
+    <Compile Include="Assets\Scripts\test.cs" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>C:/workspace/PuppleFlavorKiwi-GA/PuppleFlavorKiwi-GA/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
