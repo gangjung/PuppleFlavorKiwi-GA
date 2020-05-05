@@ -13,6 +13,8 @@
 /[Ll]ogs/
 /[Mm]emoryCaptures/
 
+/[Pp]uppleFlavorKiwi-GA/Library/
+
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
 
