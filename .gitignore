@@ -4,6 +4,7 @@
 #
 /[Ll]ibrary/
 /[Ll]ibrary/*
+/[Ll]ibrary/ArtifactDB*
 /[Tt]emp/
 /[Oo]bj/
 /[Bb]uild/
