@@ -20,22 +20,33 @@ public class GeneticManager : Singleton<GeneticManager>
      * 자손 변이 알고리즘
      */
 
-
+    /*
+     * 초기 유전자 세팅
+     */
     public void SetInitialGenericData()
     {
-
+        
     }
 
+    /*
+     * 자손 유전자 생성 알고리즘
+     */
     public void StartSelectOffspring()
     {
 
     }
 
+    /*
+     * 유전자 교차 알고리즘
+     */
     public void StartCrossOver()
     {
         
     }
 
+    /*
+     * 유전자 돌연변이 알고리즘
+     */
     public void StartMutation()
     {
 

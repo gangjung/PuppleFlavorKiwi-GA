@@ -25,12 +25,12 @@ public class GameManager : Singleton<GameManager>
     private int curGeneration = 0;
 
     // Simulationi Speed
-    public float SimulSpeed
+    public static float SimulSpeed
     {
         get { return simulSpeed; }
         set { simulSpeed = value; }
     }
-    private float simulSpeed = 0f;
+    private static float simulSpeed = 0f;
 
     void Awake()
     {
@@ -68,17 +68,14 @@ public class GameManager : Singleton<GameManager>
         Debug.Log("UpdateGeneration");
 
         // Update UI
-        //HUDManager hudManager = Util.GetHUD();
         HUDManager hudManager = HUDManager.Instance;
         if(hudManager == null)
         {
             Debug.LogError("HUDManager를 찾을 수 없습니다.");
             return;
         }
-        else
-        {
-            hudManager.UpdateGeneration(InGenCnt);
-        }
+
+        hudManager.UpdateGeneration(InGenCnt);
 
         Debug.Log("세대 정보가 업데이트 되었습니다.");
     }
