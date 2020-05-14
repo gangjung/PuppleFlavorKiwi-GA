@@ -1,6 +1,9 @@
 ﻿using Common;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.ConstrainedExecution;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 /*
@@ -20,12 +23,44 @@ public class GeneticManager : Singleton<GeneticManager>
      * 자손 변이 알고리즘
      */
 
+    // 사용할 유전자 갯수.
+    const int CHROMOSOME_CAPACITY = 100;
+
+    //private List<Chromosome> chromosomeList;
+    private Chromosome[] chromosomeList;
+
+    public bool IsFinishInitData;
+
+    ////////////////////////////////////////////////////////////
+    private void Awake()
+    {
+        IsFinishInitData = false;
+
+        //chromosomeList = new List<Chromosome>();
+        //chromosomeList = new Chromosome[CHROMOSOME_CAPACITY];
+    }
+
+    ////////////////////////////////////////////////////////////
     /*
      * 초기 유전자 세팅
      */
     public void SetInitialGenericData()
     {
-        
+        //for (int i = 0; i < CHROMOSOME_CAPACITY; ++i)
+        //{
+        //    chromosomeList.Add(new Chromosome());
+        //}
+        if (chromosomeList != null)
+        {
+            chromosomeList = null;
+            GC.Collect();
+        }
+
+        chromosomeList = new Chromosome[CHROMOSOME_CAPACITY];
+
+        IsFinishInitData = true;
+
+        Debug.Log("GeneticManager-Set Initial Generic Data");
     }
 
     /*

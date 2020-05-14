@@ -32,12 +32,17 @@ public class GameManager : Singleton<GameManager>
     }
     private static float simulSpeed = 0f;
 
+    private SIMUL_STATE gameState;
+
+    ////////////////////////////////////////////////////////////
     void Awake()
     {
         Debug.Log("GameManager-Awake");
 
         curGeneration = 0;
         simulSpeed = 1.0f;
+
+        gameState = SIMUL_STATE.INIT;
     }
 
     // Start is called before the first frame update
@@ -55,7 +60,33 @@ public class GameManager : Singleton<GameManager>
     // Update is called once per frame
     void Update()
     {
-        
+        if (gameState == SIMUL_STATE.INIT)
+        {
+            return;
+        }
+
+        switch (gameState)
+        {
+            case SIMUL_STATE.START:
+                break;
+
+            case SIMUL_STATE.DOING:
+                break;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////
+    public void StartSimulation()
+    {
+        gameState = SIMUL_STATE.START;
+    }
+
+    /*
+     * 염색체를 가진 오브젝트 생성.
+     */
+    public void SpawnObjects()
+    {
+
     }
 
     public void TestClick()
