@@ -7,9 +7,8 @@ namespace Common
     public enum SIMUL_STATE
     {
         INIT,
-        STOP,
-        START,
-        DOING,
+        SIMULATION,
+        CHECK_FITNESS,
         SELECT_OFFSPRING,
         CROSSOVER,
         MUTATION,

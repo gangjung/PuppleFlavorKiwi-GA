@@ -4,7 +4,15 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Common {
-    public class BaseSingleton : MonoBehaviour
+    public class BaseSingleton
+    {
+        public void Init()
+        {
+
+        }
+    }
+
+    public class BaseSingleton_Object : MonoBehaviour
     {
         public void Init()
         {
@@ -12,7 +20,24 @@ namespace Common {
         }
     }
 
-    public class Singleton<T> : BaseSingleton where T : BaseSingleton
+    public class Singleton<T> : BaseSingleton where T : BaseSingleton, new()
+    {
+        public static T Instance
+        {
+            get { 
+                if(instance == null)
+                {
+                    instance = new T();
+                    instance.Init();
+                }
+
+                return instance;
+            }
+        }
+        protected static T instance;
+    }
+
+    public class Singleton_Object<T> : BaseSingleton_Object where T : BaseSingleton_Object
     {
         public static T Instance
         {

@@ -1,9 +1,10 @@
 ﻿using Common;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManager : Singleton<GameManager>
+public class GameManager : Singleton_Object<GameManager>
 {
     /*
      * *** Todo List ***
@@ -32,7 +33,28 @@ public class GameManager : Singleton<GameManager>
     }
     private static float simulSpeed = 0f;
 
+    // Unit time is period between mini steps in simulation step.
+    public float UnitTime
+    {
+        get { return unitTime / simulSpeed; }
+        set { unitTime = value; }
+    }
+    private float unitTime = 0.0f;
+
+    private float localTime;
+
     private SIMUL_STATE gameState;
+    // Step과 유전자의 갯수를 동기화 시킬 것.
+    private int simulStep;
+    private const UInt32 maxSimulStep = ConstValues.MAX_CHROMOSOME_LENGTH;
+    private bool isSimulPause;
+    private bool isMoveNext;
+
+    private GeneticManager geneticManager;
+
+    public Transform startPos;
+    public TestObject testObject;
+    public List<TestObject> objList;
 
     ////////////////////////////////////////////////////////////
     void Awake()
@@ -41,8 +63,20 @@ public class GameManager : Singleton<GameManager>
 
         curGeneration = 0;
         simulSpeed = 1.0f;
+        UnitTime = 1.0f;
+
+        localTime = 0.0f;
 
         gameState = SIMUL_STATE.INIT;
+        simulStep = 0;
+        
+        isSimulPause = false;
+        isMoveNext = false;
+
+        geneticManager = GeneticManager.Instance;
+        geneticManager.CheckFitness = CheckFitness;
+
+        objList = new List<TestObject>();
     }
 
     // Start is called before the first frame update
@@ -60,43 +94,199 @@ public class GameManager : Singleton<GameManager>
     // Update is called once per frame
     void Update()
     {
-        if (gameState == SIMUL_STATE.INIT)
+        bool isUpdateStop = (gameState == SIMUL_STATE.INIT) || isSimulPause == true;
+        if (isUpdateStop)
         {
             return;
         }
 
         switch (gameState)
         {
-            case SIMUL_STATE.START:
+            case SIMUL_STATE.SIMULATION:
+                DoSimulation();
                 break;
 
-            case SIMUL_STATE.DOING:
+            case SIMUL_STATE.CHECK_FITNESS:
+                geneticManager.StartFitnessCheck();
                 break;
+
+            case SIMUL_STATE.SELECT_OFFSPRING:
+                geneticManager.StartSelectOffspring();
+                MoveNextStep();
+                break;
+
+            case SIMUL_STATE.CROSSOVER:
+                geneticManager.StartCrossOver();
+                MoveNextStep();
+                break;
+
+            case SIMUL_STATE.MUTATION:
+                geneticManager.StartMutation();
+                MoveNextStep();
+                break;
+        }
+
+        if (isMoveNext)
+        {
+            MoveNextStep_Internal();
+
+            if (gameState == SIMUL_STATE.SIMULATION)
+            {
+                StartNextGeneration();
+            }
         }
     }
 
     ////////////////////////////////////////////////////////////
     public void StartSimulation()
     {
-        gameState = SIMUL_STATE.START;
+        if (gameState != SIMUL_STATE.INIT)
+            return;
+
+        // 임시로 초기데이터 생성로직을 이곳에 둠.
+        geneticManager.SetInitialGenericData();
+
+        SpawnObjects();
+
+        gameState = SIMUL_STATE.SIMULATION;
+        RestartSimulation();
+    }
+
+    public void DoSimulation()
+    {
+        // Time
+        localTime += Time.deltaTime;
+
+        // Exeception
+        if (localTime < UnitTime)
+            return;
+
+        localTime = 0.0f;
+        simulStep++;
+
+        if (simulStep < maxSimulStep)
+        {
+            foreach (TestObject obj in objList)
+            {
+                obj.NextStep();
+            }
+        }
+        else
+        {
+            FiniishSimulation();
+        }
+    }
+
+    private void FiniishSimulation()
+    {
+        Debug.Log("Finish Simulation");
+
+        foreach (TestObject obj in objList)
+        {
+            obj.Stop();
+        }
+
+        MoveNextStep();
+    }
+
+    public void PauseSimulation()
+    {
+        isSimulPause = true;
+
+        foreach (TestObject obj in objList)
+        {
+            obj.Stop();
+        }
+    }
+    public void RestartSimulation()
+    {
+        isSimulPause = false;
+
+        foreach (TestObject obj in objList)
+        {
+            obj.Play();
+        }
+    }
+
+    public void ResetSimulation()
+    {
+        gameState = SIMUL_STATE.INIT;
+
+        simulStep = 0;
+
+        localTime = 0.0f;
+
+        isSimulPause = false;
+        isMoveNext = false;
     }
 
     /*
      * 염색체를 가진 오브젝트 생성.
+     * *** 실행 시, 생성하는 것도 좋지만, 미리 생성해두자.
      */
     public void SpawnObjects()
     {
+        if (objList.Count == 0)
+        {
+            Chromosome[] chromosomes = geneticManager.ChromosomesList;
 
+            Vector3 spawnPos = startPos.position;
+            Vector3 interval = new Vector3(0, 0, 5);
+
+            for (int idx = 0; idx < ConstValues.MAX_SPAWN_OBJECT; ++idx)
+            {
+                TestObject obj = Instantiate<TestObject>(testObject, spawnPos, startPos.rotation, startPos);
+                spawnPos += interval;
+
+                obj.chromosome = chromosomes[idx];
+
+                objList.Add(obj);
+            }
+        }
+        
+        ResetObjects();
     }
 
-    public void TestClick()
+    public void ResetObjects()
     {
-        CurGeneration++;
+        foreach (TestObject obj in objList)
+        {
+            obj.ResetObject();
+        }
+    }
+
+    /*
+     * 다음 Step으로 이동.
+     */
+    public void MoveNextStep()
+    {
+        isMoveNext = true;
+    }
+
+    private void MoveNextStep_Internal()
+    {
+        if (gameState == SIMUL_STATE.MUTATION)
+        {
+            gameState = SIMUL_STATE.SIMULATION;
+        }
+        else
+        {
+            gameState++;
+        }
+    }
+
+    private void StartNextGeneration()
+    {
+        ++CurGeneration;
+
+        ResetSimulation();
+
+        StartSimulation();
     }
 
     public void UpdateGeneration(int InGenCnt)
     {
-        Debug.Log("UpdateGeneration");
+        Debug.Log("Update Generation");
 
         // Update UI
         HUDManager hudManager = HUDManager.Instance;
@@ -109,5 +299,22 @@ public class GameManager : Singleton<GameManager>
         hudManager.UpdateGeneration(InGenCnt);
 
         Debug.Log("세대 정보가 업데이트 되었습니다.");
+    }
+
+    public void CheckFitness(Chromosome chromosome)
+    {
+        float result = 0.0f;
+
+        // 목적지는 외부요인. Object 종류마다 다르다. Object의 상황을 가져올 수 있어야 한다.
+
+        TestObject obj = objList[chromosome.number];
+        Vector3 spawnPos = obj.SpawnPos;
+        float goalPosX = spawnPos.x + 15;
+
+        result = obj.transform.position.x / goalPosX;
+
+        chromosome.fitness = result;
+
+        Debug.Log("Fitness Check 완료!!!!");
     }
 }

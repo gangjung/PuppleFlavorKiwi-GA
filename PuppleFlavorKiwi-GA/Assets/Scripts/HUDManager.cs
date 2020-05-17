@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 using Common;
 
-public class HUDManager : Singleton<HUDManager>
+public class HUDManager : Singleton_Object<HUDManager>
 {
     public GameObject UI_HUD;
     public Text UI_GenerationText;

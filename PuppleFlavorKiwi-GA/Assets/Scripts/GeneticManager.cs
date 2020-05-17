@@ -6,6 +6,8 @@ using System.Runtime.ConstrainedExecution;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
+public delegate void FitnessAlgorism(Chromosome chromosome);
+
 /*
  * 유전자 알고리즘 관련 매니저입니다.
  */
@@ -27,12 +29,19 @@ public class GeneticManager : Singleton<GeneticManager>
     const int CHROMOSOME_CAPACITY = 100;
 
     //private List<Chromosome> chromosomeList;
+    public Chromosome[] ChromosomesList
+    {
+        get { return chromosomeList; }
+        set { chromosomeList = value; }
+    }
     private Chromosome[] chromosomeList;
 
     public bool IsFinishInitData;
 
+    public FitnessAlgorism CheckFitness;
+
     ////////////////////////////////////////////////////////////
-    private void Awake()
+    public GeneticManager()
     {
         IsFinishInitData = false;
 
@@ -43,6 +52,7 @@ public class GeneticManager : Singleton<GeneticManager>
     ////////////////////////////////////////////////////////////
     /*
      * 초기 유전자 세팅
+     * -> 그냥 오브젝트가 만들어지면서 생성하고있는데... 이걸 이용하는 방법으로 바꿔야 할까???
      */
     public void SetInitialGenericData()
     {
@@ -57,6 +67,10 @@ public class GeneticManager : Singleton<GeneticManager>
         }
 
         chromosomeList = new Chromosome[CHROMOSOME_CAPACITY];
+        for(int idx = 0; idx < ConstValues.MAX_SPAWN_OBJECT; ++idx)
+        {
+            chromosomeList[idx] = new Chromosome(idx);
+        }
 
         IsFinishInitData = true;
 
@@ -86,4 +100,27 @@ public class GeneticManager : Singleton<GeneticManager>
     {
 
     }
+
+    // 사용하지 않음.
+    public void StartFitnessCheck()
+    {
+        if(chromosomeList == null)
+        {
+            Debug.Log("Check Fitness - Null Reference : chromosomeList");
+            return;
+        }
+
+        for(int idx = 0; idx < chromosomeList.Length; ++idx)
+        {
+            CheckFitness(chromosomeList[idx]);
+        }
+    }
+
+    //public void CheckFitness(in Chromosome chromosome)
+    //{
+    //    if (chromosome == null)
+    //        return;
+
+    //    // 적합도를 구해서 chromosome 내부에 집어넣자.
+    //}
 }
