@@ -62,7 +62,7 @@ public class GameManager : Singleton_Object<GameManager>
         Debug.Log("GameManager-Awake");
 
         curGeneration = 0;
-        simulSpeed = 1.0f;
+        simulSpeed = 2.0f;
         UnitTime = 1.0f;
 
         localTime = 0.0f;
@@ -110,13 +110,8 @@ public class GameManager : Singleton_Object<GameManager>
                 geneticManager.StartFitnessCheck();
                 break;
 
-            case SIMUL_STATE.SELECT_OFFSPRING:
-                geneticManager.StartSelectOffspring();
-                MoveNextStep();
-                break;
-
-            case SIMUL_STATE.CROSSOVER:
-                geneticManager.StartCrossOver();
+            case SIMUL_STATE.SELECTION_AND_CROSSOVER:
+                geneticManager.StartSelectionAndCrossOver();
                 MoveNextStep();
                 break;
 
@@ -228,23 +223,22 @@ public class GameManager : Singleton_Object<GameManager>
     {
         if (objList.Count == 0)
         {
-            Chromosome[] chromosomes = geneticManager.ChromosomesList;
-
             Vector3 spawnPos = startPos.position;
             Vector3 interval = new Vector3(0, 0, 5);
 
             for (int idx = 0; idx < ConstValues.MAX_SPAWN_OBJECT; ++idx)
             {
+                // Object Pool은... 아직 계획에 없습니다.
                 TestObject obj = Instantiate<TestObject>(testObject, spawnPos, startPos.rotation, startPos);
                 spawnPos += interval;
-
-                obj.chromosome = chromosomes[idx];
 
                 objList.Add(obj);
             }
         }
         
         ResetObjects();
+
+        SetChromosomeInObject();
     }
 
     public void ResetObjects()
@@ -252,6 +246,24 @@ public class GameManager : Singleton_Object<GameManager>
         foreach (TestObject obj in objList)
         {
             obj.ResetObject();
+        }
+    }
+
+    public void SetChromosomeInObject()
+    {
+        Chromosome[] chromosomes = geneticManager.ChromosomesList;
+
+        if (objList.Count > chromosomes.Length)
+        {
+            Debug.Log("Set Chromosome In Object - 생성된 Object 수보다 생성된 염색체의 수가 작습니다.");
+            return;
+        }
+
+        int idx = 0;
+        foreach (TestObject obj in objList)
+        {
+            obj.chromosome = chromosomes[idx];
+            idx++;
         }
     }
 
@@ -312,8 +324,9 @@ public class GameManager : Singleton_Object<GameManager>
         float goalPosX = spawnPos.x + 15;
 
         result = obj.transform.position.x / goalPosX;
-
-        chromosome.fitness = result;
+        //
+        chromosome.fitness = ((result + 1) * 100);
+        //chromosome.fitness = obj.transform.position.x + 15;
 
         Debug.Log("Fitness Check 완료!!!!");
     }

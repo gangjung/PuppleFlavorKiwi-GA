@@ -84,6 +84,16 @@ public class Gene
         move = (GENE_MOVE)UnityEngine.Random.Range(0, 4);
     }
 
+    public void CopyValue(GENE_MOVE value)
+    {
+        move = value;
+    }
+
+    public GENE_MOVE GetValue()
+    {
+        return move;
+    }
+
     public Vector3 GetMoveVector()
     {
         Vector3 result = new Vector3();

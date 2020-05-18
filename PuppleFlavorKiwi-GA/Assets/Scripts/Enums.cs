@@ -9,8 +9,7 @@ namespace Common
         INIT,
         SIMULATION,
         CHECK_FITNESS,
-        SELECT_OFFSPRING,
-        CROSSOVER,
+        SELECTION_AND_CROSSOVER,
         MUTATION,
     }
 }
