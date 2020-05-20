@@ -324,8 +324,9 @@ public class GameManager : Singleton_Object<GameManager>
         float goalPosX = spawnPos.x + 15;
 
         result = obj.transform.position.x / goalPosX;
-        //
-        chromosome.fitness = ((result + 1) * 100);
+        
+        // 명확한 계산식을 나타내기 위해 풀어서 작성.
+        chromosome.fitness = (result + 1) * 100 / 2;
         //chromosome.fitness = obj.transform.position.x + 15;
 
         Debug.Log("Fitness Check 완료!!!!");

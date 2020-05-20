@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -96,6 +97,7 @@ public class GeneticManager : Singleton<GeneticManager>
             int second = SelectionAlgorism();
 
             newList[idx] = CrossoverAlgorism(chromosomeList[first], chromosomeList[second]);
+            newList[idx].number = idx;
         }
 
         chromosomeList = newList;
@@ -119,14 +121,8 @@ public class GeneticManager : Singleton<GeneticManager>
         }
     }
 
-    // 사용하지 않음.
     public void StartFitnessCheck()
     {
-        float maxFitness = 0.0f;
-        float minFitness = 0.0f;
-        float curFitness = 0.0f;
-        int k = 3;
-
         if(chromosomeList == null)
         {
             Debug.Log("Check Fitness - Null Reference : chromosomeList");
@@ -137,28 +133,7 @@ public class GeneticManager : Singleton<GeneticManager>
         for(int idx = 0; idx < chromosomeList.Length; ++idx)
         {
             CheckFitness(chromosomeList[idx]);
-
-            float fitness = chromosomeList[idx].fitness;
-            if (maxFitness < fitness)
-            {
-                maxFitness = fitness;
-            }
-            if(minFitness > fitness)
-            {
-                minFitness = fitness;
-            }
         }
-
-        // 적합도 계산 - 부모 선택 알고리즘에서 이용
-        // ** 따로 계산 X **
-        // 내가 Notion에 올린 룰렛 휠 선택 알고리즘의 적합도 계산 식이 이상하다... 음수가 나오는 상황ㅠㅠ. 알아서 해보자.
-        //for (int idx = 0; idx < chromosomeList.Length; ++idx)
-        //{
-        //    curFitness = chromosomeList[idx].fitness;
-            
-            
-        //    curFitness = (minFitness - curFitness) + (maxFitness - minFitness)
-        //}
     }
 
 
@@ -175,12 +150,12 @@ public class GeneticManager : Singleton<GeneticManager>
     public int SelectionAlgorism()
     {
         // To Do : '룰렛 휠 선택' 알고리즘 적용.
-        // 1. 적합도 재계산 -> 이건 적합도 구하는 부분에서 다시 구해보자.
-        // 2. 적합도 총 합 계산
-        // 3. 높은 순서대로 Sorting.
+        // 1. 적합도 총 합 계산
+        // 2. 높은 순서대로 Sorting.
+        // 3. 추가 적합도 계산.
         // 4. 랜덤 숫자 선택
         // 5. 적합도에 맞는 자손 선택.
-        int resultIdx = 0;
+
         float sumOfFitness = 0.0f;
         for (int idx = 0; idx < chromosomeList.Length; ++idx)
         {
@@ -191,7 +166,24 @@ public class GeneticManager : Singleton<GeneticManager>
         //Array.Sort(chromosomeList, Comparer<Chromosome>.Create((a, b) => { return a.fitness.CompareTo(b.fitness); }));
         Array.Sort(chromosomeList, FitnessSortAlgorism);
 
+        // 추가 적합도 계산 - 균등 여부 확인.
+        // 전체적으로 적합도가 비슷한지를 확인하려면, 최저와 최고의 차이가 얼마 나지 않는 경우를 판단하면된다.
+        // 일단 그 경우를 최저와최고의 차이가 1칸인 경우를 상정했다.
+        // -> 총 5번 실행하니, 한 칸의 차이는 20%정도 날거고 미세한 차이가 있을 수 있으니 25%로 상정했다.
+        float maxFitness = chromosomeList.Last().fitness;
+        float minFitness = chromosomeList[0].fitness;
+        if (maxFitness - minFitness < 25)
+        {
+            sumOfFitness = 0;
+            for (int idx = 0; idx < chromosomeList.Length; ++idx)
+            {
+                chromosomeList[idx].fitness = idx;
+                sumOfFitness += idx;
+            }
+        }
+
         float point = UnityEngine.Random.Range(0, sumOfFitness);
+        int resultIdx = 0;
         sumOfFitness = 0.0f;
         for (int idx = 0; idx < chromosomeList.Length; ++idx)
         {
@@ -225,7 +217,7 @@ public class GeneticManager : Singleton<GeneticManager>
 
     public void MutationAlgorism(ref Chromosome chromosome)
     {
-        int point = UnityEngine.Random.Range(0, 5);
+        int point = UnityEngine.Random.Range(0, (int)ConstValues.MAX_CHROMOSOME_LENGTH);
         int value = UnityEngine.Random.Range(0, 4);
 
         chromosome.Genes[point].move = (GENE_MOVE)value;
